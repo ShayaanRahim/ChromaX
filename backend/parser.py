@@ -56,8 +56,17 @@ _CV_SAMPLE_ID_PATTERNS = [
     r"^([A-Z]{1,4}-?\d+)",              # common lab format e.g. PT-00142
 ]
 
-_ION_TYPE_QUANTIFIER_KEYWORDS = {"quant", "quantifier", "q1", "mrm1"}
-_ION_TYPE_QUALIFIER_KEYWORDS  = {"qual", "qualifier", "q3", "mrm2", "conf"}
+_ION_TYPE_QUANTIFIER_KEYWORDS = {"quant", "quantifier", "quantitative", "q1", "mrm1"}
+_ION_TYPE_QUALIFIER_KEYWORDS  = {"qual", "qualifier", "qualitative", "q3", "mrm2", "conf"}
+
+_ION_TYPE_NORMALIZATION: dict[str, str] = {
+    "quantitative": "quantifier",
+    "qualitative":  "qualifier",
+    "quantifier":   "quantifier",
+    "qualifier":    "qualifier",
+    "q1":           "quantifier",
+    "q3":           "qualifier",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -250,7 +259,8 @@ def _parse_chromatogram_element(chrom_el: ET.Element) -> Optional[dict]:
     # --- resolve metadata with fallback to ID heuristics -------------------
     sample_id     = params.get("sample_id")     or _extract_sample_id(chrom_id)
     compound_name = params.get("compound_name") or _extract_compound_name(chrom_id)
-    ion_type      = params.get("ion_type")      or _determine_ion_type(chrom_id)
+    raw_ion_type  = params.get("ion_type")      or _determine_ion_type(chrom_id)
+    ion_type      = _ION_TYPE_NORMALIZATION.get(raw_ion_type.lower(), raw_ion_type)
 
     raw_expected_rt  = params.get("expected_retention_time")
     raw_expected_ir  = params.get("expected_ion_ratio")
